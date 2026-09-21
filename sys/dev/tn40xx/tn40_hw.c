@@ -942,14 +942,26 @@ void bdx_link_changed(struct bdx_priv *priv)
 {
 	tn40_priv_t			*tn40_priv 	= CONTAINING_RECORD(priv, tn40_priv_t, bdx_priv);
 	if_t	 		ifp 		= tn40_priv->ifp;
+	int					reported;
 
 	ENTER;
     u32 link = priv->phy_ops.link_changed(priv);;
 
+    /*
+     * This is called from the poll thread/callout on every pass, so only
+     * touch the stack and log when the link state actually changed.
+     */
+    reported = link ? priv->link_speed : 0;
+    if (reported == tn40_priv->link_reported)
+    {
+    	return;
+    }
+    tn40_priv->link_reported = reported;
+
     if (!link)
     {
     	if_link_state_change(ifp, LINK_STATE_DOWN);
-    	DBG("Link Down\n");
+        MSG("%s Link Down\n", if_name(ifp));
 
 #ifdef _EEE_
     	    if(NULL!=priv->phy_ops.reset_eee)
@@ -1441,6 +1453,8 @@ int bdx_close(struct bdx_priv *priv)
     ENTER;
     bdx_stop(priv);
     priv->state &= ~BDX_STATE_OPEN;
+    /* Re-announce the link state when the interface comes back up */
+    CONTAINING_RECORD(priv, tn40_priv_t, bdx_priv)->link_reported = -1;
 
     RET(0);
 

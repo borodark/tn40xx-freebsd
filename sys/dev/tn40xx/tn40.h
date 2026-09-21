@@ -127,6 +127,7 @@ typedef struct
 	uint32_t			state;
 	struct proc			*poll_proc;
 	volatile int		poll_running;
+	int					link_reported;	/* last logged link: -1 unknown, 0 down, else speed */
 #ifdef TN40_COUNTERS
 	tn40_counters_t		counters;
 #endif

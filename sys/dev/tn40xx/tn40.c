@@ -682,6 +682,7 @@ static int tn40_attach(device_t dev)
 	do
 	{
 		bzero(tn40_priv, sizeof(tn40_priv_t));
+		tn40_priv->link_reported = -1;	/* force the first link state to be logged */
 		tn40_priv->dev 			= dev;
 		priv->deviceId 			= pci_get_device(dev);
 		priv->subsystem_device	= pci_get_subdevice(dev);
